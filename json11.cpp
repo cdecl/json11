@@ -36,6 +36,10 @@ using std::make_shared;
 using std::initializer_list;
 using std::move;
 
+#ifdef _MSC_VER
+#  define snprintf(str, size, format, ...) _snprintf_s(str, size, _TRUNCATE, format, __VA_ARGS__)
+#endif
+
 /* * * * * * * * * * * * * * * * * * * *
  * Serialization
  */
@@ -301,18 +305,18 @@ const Json & static_null() {
  * Constructors
  */
 
-Json::Json() noexcept                  : m_ptr(statics().null) {}
-Json::Json(std::nullptr_t) noexcept    : m_ptr(statics().null) {}
-Json::Json(double value)               : m_ptr(make_shared<JsonDouble>(value)) {}
-Json::Json(int value)                  : m_ptr(make_shared<JsonInt>(value)) {}
-Json::Json(bool value)                 : m_ptr(value ? statics().t : statics().f) {}
-Json::Json(const string &value)        : m_ptr(make_shared<JsonString>(value)) {}
-Json::Json(string &&value)             : m_ptr(make_shared<JsonString>(move(value))) {}
-Json::Json(const char * value)         : m_ptr(make_shared<JsonString>(value)) {}
-Json::Json(const Json::array &values)  : m_ptr(make_shared<JsonArray>(values)) {}
-Json::Json(Json::array &&values)       : m_ptr(make_shared<JsonArray>(move(values))) {}
-Json::Json(const Json::object &values) : m_ptr(make_shared<JsonObject>(values)) {}
-Json::Json(Json::object &&values)      : m_ptr(make_shared<JsonObject>(move(values))) {}
+Json::Json() JSON11_NOEXCEPT               : m_ptr(statics().null) {}
+Json::Json(std::nullptr_t) JSON11_NOEXCEPT : m_ptr(statics().null) {}
+Json::Json(double value)                   : m_ptr(make_shared<JsonDouble>(value)) {}
+Json::Json(int value)                      : m_ptr(make_shared<JsonInt>(value)) {}
+Json::Json(bool value)                     : m_ptr(value ? statics().t : statics().f) {}
+Json::Json(const string &value)            : m_ptr(make_shared<JsonString>(value)) {}
+Json::Json(string &&value)                 : m_ptr(make_shared<JsonString>(move(value))) {}
+Json::Json(const char * value)             : m_ptr(make_shared<JsonString>(value)) {}
+Json::Json(const Json::array &values)      : m_ptr(make_shared<JsonArray>(values)) {}
+Json::Json(Json::array &&values)           : m_ptr(make_shared<JsonArray>(move(values))) {}
+Json::Json(const Json::object &values)     : m_ptr(make_shared<JsonObject>(values)) {}
+Json::Json(Json::object &&values)          : m_ptr(make_shared<JsonObject>(move(values))) {}
 
 /* * * * * * * * * * * * * * * * * * * *
  * Accessors
@@ -446,16 +450,16 @@ struct JsonParser {
             return;
 
         if (pt < 0x80) {
-            out += pt;
+            out += static_cast<char>(pt);
         } else if (pt < 0x800) {
-            out += (pt >> 6) | 0xC0;
+            out += static_cast<char>(pt >> 6) | 0xC0;
             out += (pt & 0x3F) | 0x80;
         } else if (pt < 0x10000) {
-            out += (pt >> 12) | 0xE0;
+            out += static_cast<char>(pt >> 12) | 0xE0;
             out += ((pt >> 6) & 0x3F) | 0x80;
             out += (pt & 0x3F) | 0x80;
         } else {
-            out += (pt >> 18) | 0xF0;
+            out += static_cast<char>(pt >> 18) | 0xF0;
             out += ((pt >> 12) & 0x3F) | 0x80;
             out += ((pt >> 6) & 0x3F) | 0x80;
             out += (pt & 0x3F) | 0x80;
