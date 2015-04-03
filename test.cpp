@@ -1,5 +1,6 @@
 #include <string>
 #include <cstdio>
+#include <cstring>   // memcmp
 #include <iostream>
 #include <sstream>
 #include "json11.hpp"
